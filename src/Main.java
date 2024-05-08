@@ -40,13 +40,13 @@ public class Main {
                 }
             }
             turnoPlayer = !turnoPlayer; // Alternar entre os jogadores a cada rodada
-        } while (jogo);
+        } while (jogo); //Loop
 
         System.out.println("\nFIM DO JOGO!");
         System.out.println("\nNUMERO DE JOGADAS: " + jogadas);
 
         input.close(); // Fechamento do Scanner
-    }
+    } // Função Principal
 
     public static String valorDigitado() {
         System.out.println("\nLARGURA X ALTURA  \nEx.: 'L13'\n");
@@ -123,7 +123,7 @@ public class Main {
             Tabuleiro(player1, tabuleiro, true);
             Tabuleiro(player2, tabuleiro2, true);
         }
-    }
+    }// exibir Tabulerio, variando pro jogadores - com condicionais de Censura.
 
     public static void Tabuleiro(String jogadores, int[][] tabuleiro, boolean censura) {
         System.out.println("-----" + jogadores + "-----");
@@ -221,7 +221,7 @@ public class Main {
         System.out.println("Esccolha se o Tabuleiro mostra os Navios 'N' ou não:");
         System.out.println("1 - Com Censura \n2 - Sem Censura");
         alternativaDeCensura = input.nextInt();
-    }
+    }// Controle de Censura ou Sem pro Tabuleiro.
 
     public static void controleDeDificuldade() {
         System.out.println("Escolha o Nível de Dificuldade.");
@@ -274,5 +274,5 @@ public class Main {
     public static void jogadores() {
         player1 = "Jogador 1";
         player2 = "Jogador 2";
-    }
+    }// Metodo pra "Nomes dos Jogadores"
 }
