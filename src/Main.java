@@ -3,33 +3,47 @@ import java.util.Random;
 
 public class Main {
     // Variáveis Globais.
+    static String player1;
+    static String player2;
     static int altura, largura, navio;
-    static int tabuleiro[][];
+    static int tabuleiro[][], tabuleiro2[][];
     static int jogadas = 0;
+    static boolean turnoPlayer = true; // Variável para controlar o turno dos jogadores
     static Scanner input = new Scanner(System.in);
-
-    // Variável Teste.
     static int alternativa;
+    static int alternativaDeCensura;
 
     public static void main(String[] args) {
+        jogadores(); // Chamando a Função (jogadores) - exibindo o nome dos Jogadaor 1 e Jogador 2;
         controleDeDificuldade(); // Chamando a Função (controleDeDificuldade).
-//        System.out.println("Altura: " + altura);
-//        System.out.println("Largura: " + largura);
-//        System.out.println("Navios: " + navio);
+        controleDeCensura(); // Chamando a Função (controleDeCensura).
 
         inserirOsNavioNoTabuleiro(); // Chamando a Função (inserirOsNavioNoTabuleiro).
 
         boolean jogo = true;
         do {
-            exibirTabuleiro(); // Chamando a Função (exibirTabuleiro).
-            jogo = comandoDeAtaque(); // Chamando a Função (comandoDeAtaque).
-            if(navio == 0){
-                jogo = false;
+            exibirTabuleiro(alternativaDeCensura); // Chamando a Função (exibirTabuleiro).
+            if (turnoPlayer) {
+                System.out.println("\n" + player1 + ", é sua vez.");
+                jogo = comandoDeAtaque(tabuleiro2); // Jogador 1 ataca Tabuleiro 2
+            } else {
+                System.out.println("\n" + player2 + ", é sua vez.");
+                jogo = comandoDeAtaque(tabuleiro); // Jogador 2 ataca Tabuleiro 1
             }
+            if (navio == 0) {
+                jogo = false;
+
+                if (turnoPlayer) {
+                    System.out.println("\nParabéns, " + player1 + "! Você venceu!");
+                } else {
+                    System.out.println("\nParabéns, " + player2 + "! Você venceu!");
+                }
+            }
+            turnoPlayer = !turnoPlayer; // Alternar entre os jogadores a cada rodada
         } while (jogo);
-        clearScreen();
+
         System.out.println("\nFIM DO JOGO!");
-        System.out.println("\nNUEMRO DE JOGADAS: " + jogadas);
+        System.out.println("\nNUMERO DE JOGADAS: " + jogadas);
 
         input.close(); // Fechamento do Scanner
     }
@@ -38,7 +52,7 @@ public class Main {
         System.out.println("\nLARGURA X ALTURA  \nEx.: 'L13'\n");
         System.out.println("Coordenadas do ATAQUE: ");
         return input.next();
-    } //Entrada do Valor.
+    } // Entrada do Valor.
 
     public static boolean verificarValor(String comandoDeTiro) {
         // Verificação - Regex
@@ -54,25 +68,25 @@ public class Main {
         return posicao;
     } // Retonar Posições do Tabuleiro.
 
-    public static void contagemDeNavio(){
+    public static void contagemDeNavio() {
         System.out.println("Navios Restantes: " + navio);
-    }
+    }// Contagem de Navios.
 
-    public static boolean comandoDeAtaque() {
+    public static boolean comandoDeAtaque(int[][] tabuleiroAlvo) {
         String comandoDeTiro = valorDigitado(); // Lê a entrada.
 
         if (verificarValor(comandoDeTiro)) {
             jogadas++;
-            clearScreen();
+
             int[] posicoes = retonanarPosicao(comandoDeTiro);
             if (verficacaoDePosicao(posicoes)) {
-                if (tabuleiro[posicoes[0]][posicoes[1]] == 1) {
-                    tabuleiro[posicoes[0]][posicoes[1]] = 3; // Marcar como navio atingido
+                if (tabuleiroAlvo[posicoes[0]][posicoes[1]] == 1) {
+                    tabuleiroAlvo[posicoes[0]][posicoes[1]] = 3; // Marcar como navio atingido
                     System.out.println("FOGO!");
                     navio--;
                     contagemDeNavio();
                 } else {
-                    tabuleiro[posicoes[0]][posicoes[1]] = 2; // Marcar como tiro na água
+                    tabuleiroAlvo[posicoes[0]][posicoes[1]] = 2; // Marcar como tiro na água
                     System.out.println("Quase...");
                     contagemDeNavio();
                 }
@@ -84,23 +98,36 @@ public class Main {
             System.out.println("\nCoordenada INVALIDA\n");
             return false; // Comando inválido
         }
-    } //Exibir no Console.log, de solicitação de coordenadas do Tabuleiro.
+    } // Exibir no Console.log, de solicitação de coordenadas do Tabuleiro.
 
     public static boolean verficacaoDePosicao(int[] posicoes) {
         int x = posicoes[1];
         int y = posicoes[0];
         if (x < 0 || x >= altura) {
-            System.out.println("Coordenada Incorreta(LETRA): " + ((char) ('A' + x))); //Verificar a posição da Letra (Lagura).
+            System.out.println("Coordenada Incorreta(LETRA): " + ((char) ('A' + x))); // Verificar a posição da Letra (Lagura).
             return false;
         }
         if (y < 0 || y >= largura) {
-            System.out.println("Coordenada Incorreta(NUMERO): " + (y + 1)); //Verificar a Posição do Numero (Altura).
+            System.out.println("Coordenada Incorreta(NUMERO): " + (y + 1)); // Verificar a Posição do Numero (Altura).
             return false;
         }
         return true;
     }// Verificar Posição da Coordenadas no Comando(Console.log).
 
-    public static void exibirTabuleiro() {
+    public static void exibirTabuleiro(int alternativaDeCensura) {
+
+        if (alternativaDeCensura == 1) {
+            Tabuleiro(player1, tabuleiro, false);
+            Tabuleiro(player2, tabuleiro2, false);
+        } else {
+            Tabuleiro(player1, tabuleiro, true);
+            Tabuleiro(player2, tabuleiro2, true);
+        }
+    }
+
+    public static void Tabuleiro(String jogadores, int[][] tabuleiro, boolean censura) {
+        System.out.println("-----" + jogadores + "-----");
+
         String linhaDoTabuleiro = ""; // Classe de Linha do Tabuleiro (Console.log).
 
         char letraDaColuna = 'A'; // Variável da Letra nas Coluna/Largura.
@@ -132,8 +159,14 @@ public class Main {
                         break;
 
                     case 1: // Navio.
-                        linhaDoTabuleiro += "N|";
-                        break;
+                        if (censura) {
+                            linhaDoTabuleiro += "N|";
+                            break;
+                        } else {
+                            linhaDoTabuleiro += " |";
+                            break;
+                        }
+
 
                     case 2: // Errou ou Acertou na Aqua | Agua.
                         linhaDoTabuleiro += "X|";
@@ -159,14 +192,15 @@ public class Main {
 
     public static void inserirOsNavioNoTabuleiro() {
         tabuleiro = posicaoDosNavioNoTabuleiro();
+        tabuleiro2 = posicaoDosNavioNoTabuleiro();
     } // Inserir Os Navio no Tabuleiro.
 
-    public static int[][] retornarPreparoTabuleiro() {
+    public static int[][] prepararTabuleiro() {
         return new int[altura][largura];
     } // Retorno da Codenadas do Tabuleiro (Altura|Largura).
 
     public static int[][] posicaoDosNavioNoTabuleiro() {
-        int preparandoTabuleiro[][] = retornarPreparoTabuleiro();
+        int[][] tabuleiroPreparado = prepararTabuleiro();
         Random blocoAleatorio = new Random(); // Gerando um Numero Aleatorio.
         int naviosInseridos = 0;
 
@@ -174,14 +208,20 @@ public class Main {
             int x = blocoAleatorio.nextInt(altura);
             int y = blocoAleatorio.nextInt(largura);
 
-            if (preparandoTabuleiro[x][y] != 1) { // Se a posição não estiver ocupada por um navio
-                preparandoTabuleiro[x][y] = 1; // Coloca um navio na posição
+            if (tabuleiroPreparado[x][y] != 1) { // Se a posição não estiver ocupada por um navio
+                tabuleiroPreparado[x][y] = 1; // Coloca um navio na posição
                 naviosInseridos++; // Incrementa o contador de navios inseridos
             }
         }
 
-        return preparandoTabuleiro;
+        return tabuleiroPreparado;
     } // Definindo a Posições (Randômico) dos Navios.
+
+    public static void controleDeCensura() {
+        System.out.println("Esccolha se o Tabuleiro mostra os Navios 'N' ou não:");
+        System.out.println("1 - Com Censura \n2 - Sem Censura");
+        alternativaDeCensura = input.nextInt();
+    }
 
     public static void controleDeDificuldade() {
         System.out.println("Escolha o Nível de Dificuldade.");
@@ -203,35 +243,36 @@ public class Main {
         altura = 8;
         largura = 8;
         navio = 20;
-        tabuleiro = retornarPreparoTabuleiro();
+        tabuleiro = prepararTabuleiro();
+        tabuleiro2 = prepararTabuleiro();
     } // Escala do tabuleiro fica por 8x8 - Navios 20.
 
     public static void dificuldadeMedio() {
         altura = 10;
         largura = 10;
         navio = 32;
-        tabuleiro = retornarPreparoTabuleiro();
+        tabuleiro = prepararTabuleiro();
+        tabuleiro2 = prepararTabuleiro();
     } // Escala do tabuleiro fica por 10x10 - Navios 32.
 
     public static void dificuldadeDificil() {
         altura = 15;
         largura = 15;
         navio = 75;
-        tabuleiro = retornarPreparoTabuleiro();
+        tabuleiro = prepararTabuleiro();
+        tabuleiro2 = prepararTabuleiro();
     } // Escala do tabuleiro fica por 15x15 - Navio 75.
 
     public static void dificuldadeTeste() {
         altura = 2;
         largura = 2;
         navio = 1;
-        tabuleiro = retornarPreparoTabuleiro();
+        tabuleiro = prepararTabuleiro();
+        tabuleiro2 = prepararTabuleiro();
     } // Escala do tabuleiro fica por 2X2 - Navio 1.
 
-    public static void clearScreen() {
-        try {
-            new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
-        } catch (Exception ex) {
-            System.out.println("Erro ao limpar a tela: " + ex.getMessage());
-        }
+    public static void jogadores() {
+        player1 = "Jogador 1";
+        player2 = "Jogador 2";
     }
 }
