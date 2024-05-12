@@ -1,21 +1,27 @@
 import java.util.Scanner;
 import java.util.Random;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
 
 public class Main {
     // Variáveis Globais.
     static String player1;
     static String player2;
-    static int altura, largura, navio;
+    static int altura = 15;
+    static int largura = 15;
+    static  int navio = 50;
     static int tabuleiro[][], tabuleiro2[][];
     static int jogadas = 0;
     static boolean turnoPlayer = true; // Variável para controlar o turno dos jogadores
     static Scanner input = new Scanner(System.in);
-    static int alternativa;
+//    static int alternativa;
     static int alternativaDeCensura;
+
 
     public static void main(String[] args) {
         jogadores(); // Chamando a Função (jogadores) - exibindo o nome dos Jogadaor 1 e Jogador 2;
-        controleDeDificuldade(); // Chamando a Função (controleDeDificuldade).
+//        controleDeDificuldade(); // Chamando a Função (controleDeDificuldade).
         controleDeCensura(); // Chamando a Função (controleDeCensura).
 
         inserirOsNavioNoTabuleiro(); // Chamando a Função (inserirOsNavioNoTabuleiro).
@@ -56,8 +62,8 @@ public class Main {
 
     public static boolean verificarValor(String comandoDeTiro) {
         // Verificação - Regex
-        int quantidadeDeNumero = (largura > 10) ? 2 : 1; // Se for maior que 10, a Qnt. = 2, caso contrário, Qnt. = 1.
-        String expressaoDeVerificarLetra = "^[A-Za-z]{" + quantidadeDeNumero + "}[0-9]$"; // Verificar a Letra A - Z.
+        int quantidadeDeNumeros = (largura > 9) ? 2 : 1; // Se a largura for maior que 9, permitir dois dígitos (0-9), caso contrário, permitir um dígito (0-9).
+        String expressaoDeVerificarLetra = "^[A-Za-z][0-9]{1,2}$"; // Verificar a Letra A - Z seguida de um ou dois dígitos.
         return comandoDeTiro.matches(expressaoDeVerificarLetra);
     } // Validar o Valor.
 
@@ -101,14 +107,15 @@ public class Main {
     } // Exibir no Console.log, de solicitação de coordenadas do Tabuleiro.
 
     public static boolean verficacaoDePosicao(int[] posicoes) {
-        int x = posicoes[1];
-        int y = posicoes[0];
-        if (x < 0 || x >= altura) {
-            System.out.println("Coordenada Incorreta(LETRA): " + ((char) ('A' + x))); // Verificar a posição da Letra (Lagura).
+        int x = posicoes[1]; // Coordenada da largura
+        int y = posicoes[0]; // Coordenada da altura
+
+        if (x < 0 || x >= largura) {
+            System.out.println("Coordenada Incorreta(LETRA): " + ((char) ('A' + x)));
             return false;
         }
-        if (y < 0 || y >= largura) {
-            System.out.println("Coordenada Incorreta(NUMERO): " + (y + 1)); // Verificar a Posição do Numero (Altura).
+        if (y < 0 || y >= altura) {
+            System.out.println("Coordenada Incorreta(NUMERO): " + (y + 1));
             return false;
         }
         return true;
@@ -223,53 +230,53 @@ public class Main {
         alternativaDeCensura = input.nextInt();
     }// Controle de Censura ou Sem pro Tabuleiro.
 
-    public static void controleDeDificuldade() {
-        System.out.println("Escolha o Nível de Dificuldade.");
-        System.out.println("1 - Fácil\n2 - Médio\n3 - Difícil");
-        alternativa = input.nextInt();
-
-        if (alternativa == 1) {
-            dificuldadeFacil(); // Chamando a Função (dificuldadeFacil).
-        } else if (alternativa == 2) {
-            dificuldadeMedio(); // Chamando a Função (dificuldadeMedio).
-        } else if (alternativa == 3) {
-            dificuldadeDificil(); // Chamando a Função (dificuldadeDificil).
-        } else {
-            dificuldadeTeste();
-        }
-    } // Controle de Dificuldade por: Escala e Navios (Os Navio inseridos no Jogo e de Acordo com a Altura * Largura / 3 (Arredondando para Baixo)).
-
-    public static void dificuldadeFacil() {
-        altura = 8;
-        largura = 8;
-        navio = 20;
-        tabuleiro = prepararTabuleiro();
-        tabuleiro2 = prepararTabuleiro();
-    } // Escala do tabuleiro fica por 8x8 - Navios 20.
-
-    public static void dificuldadeMedio() {
-        altura = 10;
-        largura = 10;
-        navio = 32;
-        tabuleiro = prepararTabuleiro();
-        tabuleiro2 = prepararTabuleiro();
-    } // Escala do tabuleiro fica por 10x10 - Navios 32.
-
-    public static void dificuldadeDificil() {
-        altura = 15;
-        largura = 15;
-        navio = 75;
-        tabuleiro = prepararTabuleiro();
-        tabuleiro2 = prepararTabuleiro();
-    } // Escala do tabuleiro fica por 15x15 - Navio 75.
-
-    public static void dificuldadeTeste() {
-        altura = 2;
-        largura = 2;
-        navio = 1;
-        tabuleiro = prepararTabuleiro();
-        tabuleiro2 = prepararTabuleiro();
-    } // Escala do tabuleiro fica por 2X2 - Navio 1.
+//    public static void controleDeDificuldade() {
+//        System.out.println("Escolha o Nível de Dificuldade.");
+//        System.out.println("1 - Fácil\n2 - Médio\n3 - Difícil");
+//        alternativa = input.nextInt();
+//
+//        if (alternativa == 1) {
+//            dificuldadeFacil(); // Chamando a Função (dificuldadeFacil).
+//        } else if (alternativa == 2) {
+//            dificuldadeMedio(); // Chamando a Função (dificuldadeMedio).
+//        } else if (alternativa == 3) {
+//            dificuldadeDificil(); // Chamando a Função (dificuldadeDificil).
+//        } else {
+//            dificuldadeTeste();
+//        }
+//    } // Controle de Dificuldade por: Escala e Navios (Os Navio inseridos no Jogo e de Acordo com a Altura * Largura / 3 (Arredondando para Baixo)).
+//
+//    public static void dificuldadeFacil() {
+//        altura = 8;
+//        largura = 8;
+//        navio = 20;
+//        tabuleiro = prepararTabuleiro();
+//        tabuleiro2 = prepararTabuleiro();
+//    } // Escala do tabuleiro fica por 8x8 - Navios 20.
+//
+//    public static void dificuldadeMedio() {
+//        altura = 10;
+//        largura = 10;
+//        navio = 32;
+//        tabuleiro = prepararTabuleiro();
+//        tabuleiro2 = prepararTabuleiro();
+//    } // Escala do tabuleiro fica por 10x10 - Navios 32.
+//
+//    public static void dificuldadeDificil() {
+//        altura = 15;
+//        largura = 15;
+//        navio = 75;
+//        tabuleiro = prepararTabuleiro();
+//        tabuleiro2 = prepararTabuleiro();
+//    } // Escala do tabuleiro fica por 15x15 - Navio 75.
+//
+//    public static void dificuldadeTeste() {
+//        altura = 2;
+//        largura = 2;
+//        navio = 1;
+//        tabuleiro = prepararTabuleiro();
+//        tabuleiro2 = prepararTabuleiro();
+//    } // Escala do tabuleiro fica por 2X2 - Navio 1.
 
     public static void jogadores() {
         player1 = "Jogador 1";
