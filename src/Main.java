@@ -1,285 +1,229 @@
-import java.util.Scanner;
-import java.util.Random;
+//Biblioteca
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Random;
 
-public class Main {
-    // Variáveis Globais.
-    static String player1;
-    static String player2;
-    static int altura = 15;
-    static int largura = 15;
-    static  int navio = 50;
-    static int tabuleiro[][], tabuleiro2[][];
-    static int jogadas = 0;
-    static boolean turnoPlayer = true; // Variável para controlar o turno dos jogadores
-    static Scanner input = new Scanner(System.in);
-//    static int alternativa;
-    static int alternativaDeCensura;
+public class Main extends JFrame {
+    //Declaração da Classe:
+    // Declaração de variáveis estáticas para configurações do jogo
+    private static String player1 = "Jogador 1";
+    private static String player2 = "Jogador 2";
+    private static int altura = 5; // Altura do tabuleiro
+    private static int largura = 5; // Largura do tabuleiro
+    private static int navio1 = 8; // Número de navios para o Jogador 1.
+    private static int navio2 = 8; // Número de navios para o Jogador 2.
+    private static int[][] tabuleiro1, tabuleiro2; // Representação dos tabuleiros de cada jogador.
+    private static boolean turnoPlayer = true; // Variável para controlar o turno dos jogadores
 
+    // Componentes da interface gráfica
 
-    public static void main(String[] args) {
-        jogadores(); // Chamando a Função (jogadores) - exibindo o nome dos Jogadaor 1 e Jogador 2;
-//        controleDeDificuldade(); // Chamando a Função (controleDeDificuldade).
-        controleDeCensura(); // Chamando a Função (controleDeCensura).
+    private JButton[][] buttons1 = new JButton[altura][largura];// Botões para o tabuleiro do Jogador 1
+    private JButton[][] buttons2 = new JButton[altura][largura];// Botões para o tabuleiro do Jogador 2
+    private JLabel infoLabel; // Rótulo para exibir informações sobre o turno atual
+    private JLabel naviosLabel; // Rótulo para exibir o número de navios restantes para cada jogador
+    private JButton resetButton; // Botão para reiniciar o jogo
 
-        inserirOsNavioNoTabuleiro(); // Chamando a Função (inserirOsNavioNoTabuleiro).
+    // Construtor da classe
+    // Método para criar o tabuleiro
 
-        boolean jogo = true;
-        do {
-            exibirTabuleiro(alternativaDeCensura); // Chamando a Função (exibirTabuleiro).
-            if (turnoPlayer) {
-                System.out.println("\n" + player1 + ", é sua vez.");
-                jogo = comandoDeAtaque(tabuleiro2); // Jogador 1 ataca Tabuleiro 2
+    public Main() {
+
+        // Configurações da janela
+
+        setTitle("Batalha Naval");
+        setSize(800, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
+
+        // Painel principal dividido em dois para os tabuleiros dos jogadores
+
+        JPanel mainPanel = new JPanel(new GridLayout(1, 2, 10, 10));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        JPanel boardPanel1 = criarPainelTabuleiro(player1, buttons1);// Cria o painel para o tabuleiro do Jogador 1
+        JPanel boardPanel2 = criarPainelTabuleiro(player2, buttons2);// Cria o painel para o tabuleiro do Jogador 2
+        JPanel infoPanel = new JPanel(new GridLayout(3, 1));// Painel para exibir informações do jogo
+
+        // Componentes de informação e controle do jogo
+
+        infoLabel = new JLabel(player1 + ", é sua vez.", JLabel.CENTER);
+        naviosLabel = new JLabel("Navios Restantes - " + player1 + ": " + navio1 + " | " + player2 + ": " + navio2, JLabel.CENTER);
+        resetButton = new JButton("Reiniciar Jogo");
+        resetButton.addActionListener(e -> resetGame());// Adiciona um ouvinte de ação para reiniciar o jogo
+
+        // Adiciona os componentes ao painel de informações
+
+        infoPanel.add(infoLabel);
+        infoPanel.add(naviosLabel);
+        infoPanel.add(resetButton);
+
+        // Inicializa os tabuleiros com os navios posicionados
+
+        inserirOsNavioNoTabuleiro();
+
+        // Adiciona os painéis ao layout da janela
+
+        mainPanel.add(boardPanel1);
+        mainPanel.add(boardPanel2);
+        add(mainPanel, BorderLayout.CENTER);
+        add(infoPanel, BorderLayout.SOUTH);
+
+        setVisible(true);// Torna a janela visível
+    }
+
+    //Método para criar o painel do tabuleiro
+
+    private JPanel criarPainelTabuleiro(String player, JButton[][] buttons) {
+        JPanel boardPanel = new JPanel(new GridLayout(altura + 1, largura + 1));
+        boardPanel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), player, TitledBorder.CENTER, TitledBorder.TOP));
+
+        // Adiciona as coordenadas
+
+        boardPanel.add(new JLabel(""));
+        for (int j = 0; j < largura; j++) {
+            boardPanel.add(new JLabel(String.valueOf(j), JLabel.CENTER));
+        }
+        for (int i = 0; i < altura; i++) {
+            boardPanel.add(new JLabel(String.valueOf(i), JLabel.CENTER));
+            for (int j = 0; j < largura; j++) {
+                buttons[i][j] = new JButton();
+                buttons[i][j].setBackground(Color.BLUE);
+                buttons[i][j].setMargin(new Insets(0, 0, 0, 0));
+                buttons[i][j].setActionCommand(i + "," + j);
+                buttons[i][j].addActionListener(new ButtonClickListener(i, j, buttons == buttons1));
+                boardPanel.add(buttons[i][j]);
+            }
+        }
+        return boardPanel;
+    }
+
+    // Classe interna para lidar com cliques nos botões do tabuleiro
+
+    private class ButtonClickListener implements ActionListener {
+        private int x, y;
+        private boolean isPlayer1;
+
+        // Construtor
+        public ButtonClickListener(int x, int y, boolean isPlayer1) {
+            this.x = x;
+            this.y = y;
+            this.isPlayer1 = isPlayer1;
+        } // Método chamado quando um botão é clicado
+
+        @Override
+
+        public void actionPerformed(ActionEvent e) {
+            if (turnoPlayer && !isPlayer1) { // Jogador 1 ataca no campo do Jogador 2
+                processarJogada(tabuleiro2, buttons2, x, y, false);// Processa o ataque do Jogador 1
+            } else if (!turnoPlayer && isPlayer1) { // Jogador 2 ataca no campo do Jogador 1
+                processarJogada(tabuleiro1, buttons1, x, y, true);// Processa o ataque do Jogador 2
+            }
+        }
+    }
+
+    // Método para processar uma jogada
+
+    private void processarJogada(int[][] tabuleiroAlvo, JButton[][] buttons, int x, int y, boolean isPlayer1) {
+        // Verifica se o alvo é um navio ou água
+        if (tabuleiroAlvo[x][y] == 1) {// Se for navio
+            buttons[x][y].setBackground(Color.RED);// Muda a cor do botão para indicar um navio atingido
+            buttons[x][y].setText("N");// Exibe "N" no botão para indicar navio atingido
+            tabuleiroAlvo[x][y] = 3; // Marcar como navio atingido
+            if (isPlayer1) {
+                navio1--;// Decrementa o número de navios do Jogador 1
             } else {
-                System.out.println("\n" + player2 + ", é sua vez.");
-                jogo = comandoDeAtaque(tabuleiro); // Jogador 2 ataca Tabuleiro 1
+                navio2--;// Decrementa o número de navios do Jogador 2
             }
-            if (navio == 0) {
-                jogo = false;
+        } else {// Se for água
+            buttons[x][y].setBackground(Color.WHITE);// Muda a cor do botão para indicar tiro na água
+            buttons[x][y].setText("X");// Exibe "X" no botão para indicar tiro na água
+            tabuleiroAlvo[x][y] = 2; // Marcar como tiro na água
+        }
 
-                if (turnoPlayer) {
-                    System.out.println("\nParabéns, " + player1 + "! Você venceu!");
-                } else {
-                    System.out.println("\nParabéns, " + player2 + "! Você venceu!");
-                }
+        buttons[x][y].setEnabled(false);// Desativa o botão para evitar cliques adicionais no mesmo local
+
+        turnoPlayer = !turnoPlayer; // Alternar entre os jogadores a cada rodada
+        String jogador = turnoPlayer ? player1 : player2;// Determina o jogador atual
+        infoLabel.setText(jogador + ", é sua vez.");// Atualiza o rótulo de informações com o jogador atual
+        naviosLabel.setText("Navios Restantes - " + player1 + ": " + navio1 + " | " + player2 + ": " + navio2);// Atualiza o rótulo com o número de navios restantes para cada jogador
+
+        // Verifica se algum jogador venceu
+
+        if (navio1 == 0) {
+            JOptionPane.showMessageDialog(null, "Parabéns, " + player2 + "! Você venceu!");// Exibe mensagem de vitória para o Jogador 2
+            resetGame();// Reinicia o jogo
+        } else if (navio2 == 0) {
+            JOptionPane.showMessageDialog(null, "Parabéns, " + player1 + "! Você venceu!");// Exibe mensagem de vitória para o Jogador 1
+            resetGame();// Reinicia o jogo
+        }
+    }
+
+    // Método para reiniciar o jogo
+
+    private void resetGame() {
+        // Reinicia o tabuleiro e os navios para reiniciar o jogo
+        navio1 = 8;
+        navio2 = 8;
+        turnoPlayer = true;
+        infoLabel.setText(player1 + ", é sua vez.");// Atualiza o rótulo de informações
+        naviosLabel.setText("Navios Restantes - " + player1 + ": " + navio1 + " | " + player2 + ": " + navio2);// Atualiza o rótulo de navios restantes
+
+        // Reinicia os botões dos tabuleiros
+        for (int i = 0; i < altura; i++) {
+            for (int j = 0; j < largura; j++) {
+                buttons1[i][j].setEnabled(true);
+                buttons1[i][j].setText("");
+                buttons1[i][j].setBackground(Color.BLUE);
+                buttons2[i][j].setEnabled(true);
+                buttons2[i][j].setText("");
+                buttons2[i][j].setBackground(Color.BLUE);
             }
-            turnoPlayer = !turnoPlayer; // Alternar entre os jogadores a cada rodada
-        } while (jogo); //Loop
-
-        System.out.println("\nFIM DO JOGO!");
-        System.out.println("\nNUMERO DE JOGADAS: " + jogadas);
-
-        input.close(); // Fechamento do Scanner
-    } // Função Principal
-
-    public static String valorDigitado() {
-        System.out.println("\nLARGURA X ALTURA  \nEx.: 'L13'\n");
-        System.out.println("Coordenadas do ATAQUE: ");
-        return input.next();
-    } // Entrada do Valor.
-
-    public static boolean verificarValor(String comandoDeTiro) {
-        // Verificação - Regex
-        int quantidadeDeNumeros = (largura > 9) ? 2 : 1; // Se a largura for maior que 9, permitir dois dígitos (0-9), caso contrário, permitir um dígito (0-9).
-        String expressaoDeVerificarLetra = "^[A-Za-z][0-9]{1,2}$"; // Verificar a Letra A - Z seguida de um ou dois dígitos.
-        return comandoDeTiro.matches(expressaoDeVerificarLetra);
-    } // Validar o Valor.
-
-    public static int[] retonanarPosicao(String comandoDeTiro) {
-        int[] posicao = new int[2];
-        posicao[1] = comandoDeTiro.charAt(0) - 'A';
-        posicao[0] = Integer.parseInt(comandoDeTiro.substring(1)) - 1;
-        return posicao;
-    } // Retonar Posições do Tabuleiro.
-
-    public static void contagemDeNavio() {
-        System.out.println("Navios Restantes: " + navio);
-    }// Contagem de Navios.
-
-    public static boolean comandoDeAtaque(int[][] tabuleiroAlvo) {
-        String comandoDeTiro = valorDigitado(); // Lê a entrada.
-
-        if (verificarValor(comandoDeTiro)) {
-            jogadas++;
-
-            int[] posicoes = retonanarPosicao(comandoDeTiro);
-            if (verficacaoDePosicao(posicoes)) {
-                if (tabuleiroAlvo[posicoes[0]][posicoes[1]] == 1) {
-                    tabuleiroAlvo[posicoes[0]][posicoes[1]] = 3; // Marcar como navio atingido
-                    System.out.println("FOGO!");
-                    navio--;
-                    contagemDeNavio();
-                } else {
-                    tabuleiroAlvo[posicoes[0]][posicoes[1]] = 2; // Marcar como tiro na água
-                    System.out.println("Quase...");
-                    contagemDeNavio();
-                }
-            } else {
-                System.out.println("\nCoordenada ERRADA\n");
-            }
-            return true; // Comando válido
-        } else {
-            System.out.println("\nCoordenada INVALIDA\n");
-            return false; // Comando inválido
-        }
-    } // Exibir no Console.log, de solicitação de coordenadas do Tabuleiro.
-
-    public static boolean verficacaoDePosicao(int[] posicoes) {
-        int x = posicoes[1]; // Coordenada da largura
-        int y = posicoes[0]; // Coordenada da altura
-
-        if (x < 0 || x >= largura) {
-            System.out.println("Coordenada Incorreta(LETRA): " + ((char) ('A' + x)));
-            return false;
-        }
-        if (y < 0 || y >= altura) {
-            System.out.println("Coordenada Incorreta(NUMERO): " + (y + 1));
-            return false;
-        }
-        return true;
-    }// Verificar Posição da Coordenadas no Comando(Console.log).
-
-    public static void exibirTabuleiro(int alternativaDeCensura) {
-
-        if (alternativaDeCensura == 1) {
-            Tabuleiro(player1, tabuleiro, false);
-            Tabuleiro(player2, tabuleiro2, false);
-        } else {
-            Tabuleiro(player1, tabuleiro, true);
-            Tabuleiro(player2, tabuleiro2, true);
-        }
-    }// exibir Tabulerio, variando pro jogadores - com condicionais de Censura.
-
-    public static void Tabuleiro(String jogadores, int[][] tabuleiro, boolean censura) {
-        System.out.println("-----" + jogadores + "-----");
-
-        String linhaDoTabuleiro = ""; // Classe de Linha do Tabuleiro (Console.log).
-
-        char letraDaColuna = 'A'; // Variável da Letra nas Coluna/Largura.
-
-        String colunaDoTabuleiro = " "; // Classe de Coluna do Tabuleiro (Console.log).
-        if (largura < 10) {
-            colunaDoTabuleiro = "   |";
-        } else {
-            colunaDoTabuleiro = "   |";
         }
 
-        for (int i = 0; i < largura; i++) {
-            colunaDoTabuleiro += (char) (letraDaColuna + i) + "|";
-        }
-        System.out.println(colunaDoTabuleiro);
-        int numeroDaLinha = 1; // Variável do Numero da Linha.
+        // Reposiciona os navios nos tabuleiros
+        inserirOsNavioNoTabuleiro();
+    }
 
-        for (int[] linha : tabuleiro) {
-            if (numeroDaLinha < 10) {
-                linhaDoTabuleiro = (numeroDaLinha++) + "  |";
-            } else {
-                linhaDoTabuleiro = (numeroDaLinha++) + " |";
-            }
-
-            for (int coluna : linha) {
-                switch (coluna) {
-                    case 0: // Vazio.
-                        linhaDoTabuleiro += " |";
-                        break;
-
-                    case 1: // Navio.
-                        if (censura) {
-                            linhaDoTabuleiro += "N|";
-                            break;
-                        } else {
-                            linhaDoTabuleiro += " |";
-                            break;
-                        }
-
-
-                    case 2: // Errou ou Acertou na Aqua | Agua.
-                        linhaDoTabuleiro += "X|";
-                        break;
-
-                    case 3: // Acertou ou Afundou o Navio.
-                        linhaDoTabuleiro += "*|";
-                        break;
-                } // Verificação do Estado da Coluna/Bloco do Tabuleiro.
-            }
-            System.out.println(linhaDoTabuleiro); // Exibindo Tabuleiro (Console.log).
-        }
-    } // Exibindo no Console.Log o Tabuleiro - A numeração (Altura) e as Letras (lagura).
-
-    /*
-     * Na Função (exibirTabuleiro), foram colocados os símbolos em cada "Bloco", de acordo com os valores inseridos na Função (inserirOsNavioNoTabuleiro).
-     * Apresentando os seguintes Símbolos:
-     * - Vazio     | | = (Quando não tem Navio no Bloco).
-     * - Com Navio |N| = (Quando tem Navio no Bloco - temporario).
-     * - Errou     |X|
-     * - Acertou   |*|
-     * */
+    // Método para posicionar os navios nos tabuleiros
 
     public static void inserirOsNavioNoTabuleiro() {
-        tabuleiro = posicaoDosNavioNoTabuleiro();
-        tabuleiro2 = posicaoDosNavioNoTabuleiro();
-    } // Inserir Os Navio no Tabuleiro.
+        tabuleiro1 = posicaoDosNavioNoTabuleiro();// Posiciona os navios para o Jogador 1
+        tabuleiro2 = posicaoDosNavioNoTabuleiro();// Posiciona os navios para o Jogador 2
+    }
+
+    // Método para criar e retornar um tabuleiro vazio
 
     public static int[][] prepararTabuleiro() {
         return new int[altura][largura];
-    } // Retorno da Codenadas do Tabuleiro (Altura|Largura).
+    }
+
+    // Método para posicionar os navios aleatoriamente no tabuleiro
 
     public static int[][] posicaoDosNavioNoTabuleiro() {
-        int[][] tabuleiroPreparado = prepararTabuleiro();
-        Random blocoAleatorio = new Random(); // Gerando um Numero Aleatorio.
+        int[][] tabuleiroPreparado = prepararTabuleiro();// Cria um tabuleiro vazio
+        Random blocoAleatorio = new Random();// Gerador de números aleatórios
         int naviosInseridos = 0;
 
-        while (naviosInseridos < navio) {
-            int x = blocoAleatorio.nextInt(altura);
+        // Insere os navios aleatoriamente no tabuleiro
+        while (naviosInseridos < 8) { // Ajuste o número de navios conforme necessário
+            int x = blocoAleatorio.nextInt(altura);// Gera uma posição aleatória para o navio
             int y = blocoAleatorio.nextInt(largura);
 
             if (tabuleiroPreparado[x][y] != 1) { // Se a posição não estiver ocupada por um navio
                 tabuleiroPreparado[x][y] = 1; // Coloca um navio na posição
-                naviosInseridos++; // Incrementa o contador de navios inseridos
+                naviosInseridos++;// Incrementa o contador de navios inseridos
             }
         }
 
         return tabuleiroPreparado;
-    } // Definindo a Posições (Randômico) dos Navios.
+    }// Retorna o tabuleiro com os navios posicionados
 
-    public static void controleDeCensura() {
-        System.out.println("Esccolha se o Tabuleiro mostra os Navios 'N' ou não:");
-        System.out.println("1 - Com Censura \n2 - Sem Censura");
-        alternativaDeCensura = input.nextInt();
-    }// Controle de Censura ou Sem pro Tabuleiro.
+    // Método principal para iniciar o jogo
 
-//    public static void controleDeDificuldade() {
-//        System.out.println("Escolha o Nível de Dificuldade.");
-//        System.out.println("1 - Fácil\n2 - Médio\n3 - Difícil");
-//        alternativa = input.nextInt();
-//
-//        if (alternativa == 1) {
-//            dificuldadeFacil(); // Chamando a Função (dificuldadeFacil).
-//        } else if (alternativa == 2) {
-//            dificuldadeMedio(); // Chamando a Função (dificuldadeMedio).
-//        } else if (alternativa == 3) {
-//            dificuldadeDificil(); // Chamando a Função (dificuldadeDificil).
-//        } else {
-//            dificuldadeTeste();
-//        }
-//    } // Controle de Dificuldade por: Escala e Navios (Os Navio inseridos no Jogo e de Acordo com a Altura * Largura / 3 (Arredondando para Baixo)).
-//
-//    public static void dificuldadeFacil() {
-//        altura = 8;
-//        largura = 8;
-//        navio = 20;
-//        tabuleiro = prepararTabuleiro();
-//        tabuleiro2 = prepararTabuleiro();
-//    } // Escala do tabuleiro fica por 8x8 - Navios 20.
-//
-//    public static void dificuldadeMedio() {
-//        altura = 10;
-//        largura = 10;
-//        navio = 32;
-//        tabuleiro = prepararTabuleiro();
-//        tabuleiro2 = prepararTabuleiro();
-//    } // Escala do tabuleiro fica por 10x10 - Navios 32.
-//
-//    public static void dificuldadeDificil() {
-//        altura = 15;
-//        largura = 15;
-//        navio = 75;
-//        tabuleiro = prepararTabuleiro();
-//        tabuleiro2 = prepararTabuleiro();
-//    } // Escala do tabuleiro fica por 15x15 - Navio 75.
-//
-//    public static void dificuldadeTeste() {
-//        altura = 2;
-//        largura = 2;
-//        navio = 1;
-//        tabuleiro = prepararTabuleiro();
-//        tabuleiro2 = prepararTabuleiro();
-//    } // Escala do tabuleiro fica por 2X2 - Navio 1.
-
-    public static void jogadores() {
-        player1 = "Jogador 1";
-        player2 = "Jogador 2";
-    }// Metodo pra "Nomes dos Jogadores"
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new Main());
+    }// Cria e exibe a interface gráfica do jogo
 }

@@ -1,0 +1,63 @@
+@startuml
+title Batalha Naval
+
+class Tabuleiro {
+    - String player1 = "Jogador 1"
+    - String player2 = "Jogador 2"
+    - int altura = 5
+    - int largura = 5
+    - int navio1 = 8
+    - int navio2 = 8
+    - int[][] tabuleiro1
+    - int[][] tabuleiro2
+    - boolean turnoPlayer = true
+    - JButton[][] buttons1
+    - JButton[][] buttons2
+    - JLabel infoLabel
+    - JLabel naviosLabel
+    - JButton resetButton
+    --
+    + Tabuleiro()
+    + static void inserirOsNavioNoTabuleiro()
+    + static int[][] prepararTabuleiro()
+    + static int[][] posicaoDosNavioNoTabuleiro()
+    - JPanel criarPainelTabuleiro(String player, JButton[][] buttons)
+    - void processarJogada(int[][] tabuleiroAlvo, JButton[][] buttons, int x, int y, boolean isPlayer1)
+    - void resetGame()
+}
+
+class ButtonClickListener {
+    - int x
+    - int y
+    - boolean isPlayer1
+    --
+    + ButtonClickListener(int x, int y, boolean isPlayer1)
+    + void actionPerformed(ActionEvent e)
+}
+
+class JFrame
+class JPanel
+class JButton
+class JLabel
+class ActionListener
+class ActionEvent
+
+Tabuleiro "1" *-- "n" ButtonClickListener : listens for clicks
+Tabuleiro -- JFrame : extends
+Tabuleiro -- JPanel : uses
+Tabuleiro -- JButton : uses
+Tabuleiro -- JLabel : uses
+ButtonClickListener -- ActionListener : implements
+ButtonClickListener -- ActionEvent : uses
+
+note right of Tabuleiro
+    Esta classe representa o jogo de Batalha Naval.
+    Contém a lógica principal e a interface gráfica.
+end note
+
+note right of ButtonClickListener
+    Esta classe interna lida com os cliques dos botões
+    e determina a lógica de ataque.
+end note
+
+@enduml
